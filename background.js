@@ -15,8 +15,8 @@ var hostToDomain = function (host) {
 	return a.join('.');
 };
 
-var cookieDomainToUrl = function (domain) {
-	return 'http://'+domain.replace(/^\./, '');
+var cookieUrl = function (c) {
+	return (c.secure?'https':'http')+'://'+c.domain.replace(/^\./, '');
 };
 
 var getAllCookiesByDomain = function (domain) {
@@ -25,15 +25,16 @@ var getAllCookiesByDomain = function (domain) {
 
 var removeAllCookiesByDomain  = function (domain) {
 	return getAllCookiesByDomain(domain).then(function (cookies) {
-		console.log('remove', domain, cookies);
-		return removeAllCookies(cookies);
+		return removeAllCookies(cookies).then(function (res) {
+			console.log('removeRes', domain, res);
+		});
 	});
 };
 
 var removeAllCookies = function (cookies) {
 	return Promise.all(cookies.map(function (c) {
 		return denodify(chrome.cookies.remove)({
-			url: cookieDomainToUrl(c.domain),
+			url: cookieUrl(c),
 			name: c.name,
 			storeId: c.storeId,
 		});
@@ -43,7 +44,7 @@ var removeAllCookies = function (cookies) {
 var setAllCookies = function (cookies) {
 	return Promise.all(cookies.map(function (c) {
 		var set = {
-			url: cookieDomainToUrl(c.domain),
+			url: cookieUrl(c),
 			name: c.name, value: c.value,
 			domain: c.domain, path: c.path,
 			secure: c.secure, httpOnly: c.httpOnly,
