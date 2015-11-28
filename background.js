@@ -167,6 +167,17 @@ api.getProfiles = function (params) {
 	});
 };
 
+api.updateUserInfo = function (params) {
+	var domain = hostToDomain(params.host);
+	return storageGet(domain).then(function (data) {
+		if (data == null)
+			data = defaultDomainData();
+		var profile = data.profiles[data.currentProfileId];
+		profile.title = params.username;
+		return storageSet(domain, data);
+	});
+};
+
 chrome.runtime.onMessage.addListener(function (msg, sender, cb) {
 	var fulfill = function (res) {
 		console.log(msg, res);
