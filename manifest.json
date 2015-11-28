@@ -1,0 +1,31 @@
+{
+  "name" : "马甲",
+  "version" : "1.0",
+  "description" : "快速切换同一网站的多个已登录账号，支持豆瓣、知乎、微博和所有用 Cookie 保存登录信息的网站",
+  "permissions": [
+		"cookies",
+		"tabs",
+		"http://*/*",
+		"https://*/*",
+		"storage"
+	],
+  "icons": { "16": "majia.png", "48": "majia.png", "128": "majia.png" },
+  "browser_action": {
+    "default_icon": "majia.png"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["contentscript.js"]
+    }
+  ],
+  "browser_action": {
+    "default_title": "",
+    "default_icon": "majia.png",
+    "default_popup": "popup.html"
+  },
+  "manifest_version": 2
+}
