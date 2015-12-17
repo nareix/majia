@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			mainDiv.appendChild(button);
 		});
 
-		var hr = document.createElement('hr');
+		var hr = document.createElement('p');
 		mainDiv.appendChild(hr);
 	
 		var button = document.createElement('button');
