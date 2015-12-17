@@ -8,6 +8,28 @@ var denodify = function (fn) {
 	};
 };
 
+var sendMessageToCurrentTab = function (message) {
+	return new Promise(function (fulfill, reject) {
+		chrome.tabs.query({'active': true}, function(tabs) {
+			chrome.tabs.sendMessage(tabs[0].id, message, {}, fulfill);
+		});
+	});
+};
+
+var resetLocalStorageByDomain = function (domain, content) {
+	return sendMessageToCurrentTab({
+		op: 'resetLocalStorageByDomain',
+		params: {domain: domain, content: content},
+	});
+};
+
+var getLocalStorageByDomain = function (domain) {
+	return sendMessageToCurrentTab({
+		op: 'getLocalStorageByDomain',
+		params: {domain: domain},
+	});
+};
+
 var hostToDomain = function (host) {
 	var a = host.split('.');
 	if (a.length > 2)
@@ -19,19 +41,38 @@ var cookieUrl = function (c) {
 	return (c.secure?'https':'http')+'://'+c.domain.replace(/^\./, '');
 };
 
+// cookies={cookies,localStorage}
+
 var getAllCookiesByDomain = function (domain) {
-	return denodify(chrome.cookies.getAll)({domain: domain});
+	var res = {}
+	return denodify(chrome.cookies.getAll)({domain: domain}).then(function (cookies) {
+		res.cookies = cookies;
+		return getLocalStorageByDomain(domain);
+	}).then(function (content) {
+		res.localStorage = content;
+		return res;
+	});
 };
 
 var removeAllCookiesByDomain  = function (domain) {
 	return getAllCookiesByDomain(domain).then(function (cookies) {
-		return removeAllCookies(cookies).then(function (res) {
-			console.log('removeRes', domain, res);
-		});
+		return Promise.all([
+			removeAllChromeCookies(cookies.cookies),
+			resetLocalStorageByDomain(domain, {}),
+		]);
 	});
 };
 
-var removeAllCookies = function (cookies) {
+var resetAllCookiesByDomain = function (domain, cookies) {
+	return removeAllCookiesByDomain(domain).then(function () {
+		return Promise.all([
+			setAllChromeCookies(cookies.cookies),
+			resetLocalStorageByDomain(domain, cookies.localStorage),
+		])
+	});
+};
+
+var removeAllChromeCookies = function (cookies) {
 	return Promise.all(cookies.map(function (c) {
 		return denodify(chrome.cookies.remove)({
 			url: cookieUrl(c),
@@ -41,7 +82,7 @@ var removeAllCookies = function (cookies) {
 	}));
 };
 
-var setAllCookies = function (cookies) {
+var setAllChromeCookies = function (cookies) {
 	return Promise.all(cookies.map(function (c) {
 		var set = {
 			url: cookieUrl(c),
@@ -52,12 +93,6 @@ var setAllCookies = function (cookies) {
 		};
 		return denodify(chrome.cookies.set)(set);
 	}));
-};
-
-var removeAndSetCookies = function (domain, cookies) {
-	return removeAllCookiesByDomain(domain).then(function () {
-		return setAllCookies(cookies);
-	});
 };
 
 var storageGet = function (k, v) {
@@ -90,7 +125,7 @@ api.deleteCurrentProfile = function (params) {
 		delete data.profiles[data.currentProfileId];
 		data.currentProfileId = Object.keys(data.profiles)[0];
 		return storageSet(domain, data).then(function () {
-			return removeAndSetCookies(domain, data.profiles[data.currentProfileId].cookies);
+			return resetAllCookiesByDomain(domain, data.profiles[data.currentProfileId].cookies);
 		});
 	});
 };
@@ -153,7 +188,7 @@ api.selectProfile = function (params) {
 			data.currentProfileId = params.id;
 			return storageSet(domain, data);
 		}).then(function () {
-			return removeAndSetCookies(domain, newProfile.cookies || []);
+			return resetAllCookiesByDomain(domain, newProfile.cookies);
 		});
 	});
 };

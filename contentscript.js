@@ -8,6 +8,30 @@
 		});
 	};
 
+	chrome.runtime.onMessage.addListener(function (msg, sender, cb) {
+		if (msg.op == 'resetLocalStorageByDomain') {
+			if (msg.params.domain == domain) {
+				resetLocalStorage(msg.params.content);
+				cb(true);
+			}
+		} else if (msg.op == 'getLocalStorageByDomain') {
+			if (msg.params.domain == domain) {
+				var res = {}
+				for (var k in localStorage)
+					res[k] = localStorage.getItem(k);
+				cb(res);
+			}
+		}
+		return true;
+	});
+
+	var resetLocalStorage = function (content) {
+		sessionStorage.clear();
+		localStorage.clear();
+		for (var k in content)
+			localStorage.setItem(k, content[k]);
+	};
+
 	var gotUsername = function (name) {
 		if (localStorage.getItem('majia.username') == name)
 			return;
@@ -21,6 +45,7 @@
 			a = a.slice(a.length-2);
 		return a.join('.');
 	};
+	var domain = hostToDomain(window.location.hostname);
 
 	({
 		'douban.com': function () {
@@ -59,6 +84,6 @@
 				gotUsername(span.innerHTML);
 		},
 
-	}[hostToDomain(window.location.hostname)] || function () {})();
+	}[domain] || function () {})();
 }();
 

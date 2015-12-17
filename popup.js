@@ -76,10 +76,15 @@ document.addEventListener('DOMContentLoaded', function () {
 				button.onclick = function () {
 					selectProfile(profile.id);
 				};
+			} else {
+				button.style.color = 'red';
 			}
 
 			mainDiv.appendChild(button);
 		});
+
+		var hr = document.createElement('hr');
+		mainDiv.appendChild(hr);
 	
 		var button = document.createElement('button');
 		button.innerHTML = '新建..';
