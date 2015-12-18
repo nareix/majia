@@ -1,6 +1,6 @@
 
 var reloadCurrentTab = function () {
-	chrome.tabs.query({'active': true}, function(tabs) {
+	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 		chrome.tabs.reload(tabs[0].id);
 	});
 };
@@ -13,7 +13,7 @@ var callApi = function (op, params) {
 	return new Promise(function (fulfill, reject) {
 		params = params || {};
 
-		chrome.tabs.query({'active': true}, function(tabs) {
+		chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 			var urlParseRE = /^(((([^:\/#\?]+:)?(?:(\/\/)((?:(([^:@\/#\?]+)(?:\:([^:@\/#\?]+))?)@)?(([^:\/#\?\]\[]+|\[[^\/\]@#?]+\])(?:\:([0-9]+))?))?)?)?((\/?(?:[^\/\?#]+\/+)*)([^\?#]*)))?(\?[^#]+)?)(#.*)?/;
 			var matches = urlParseRE.exec(tabs[0].url);
 			params.host = matches[11];

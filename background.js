@@ -10,7 +10,7 @@ var denodify = function (fn) {
 
 var sendMessageToCurrentTab = function (message) {
 	return new Promise(function (fulfill, reject) {
-		chrome.tabs.query({'active': true}, function(tabs) {
+		chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 			chrome.tabs.sendMessage(tabs[0].id, message, {}, fulfill);
 		});
 	});
