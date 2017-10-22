@@ -1,4 +1,3 @@
-
 var reloadCurrentTab = function () {
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 		chrome.tabs.reload(tabs[0].id);
@@ -6,7 +5,8 @@ var reloadCurrentTab = function () {
 };
 
 var reloadPopup = function () {
-	window.location.reload();
+	// window.location.reload();
+	initPage();
 };
 
 var callApi = function (op, params) {
@@ -14,9 +14,8 @@ var callApi = function (op, params) {
 		params = params || {};
 
 		chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-			var urlParseRE = /^(((([^:\/#\?]+:)?(?:(\/\/)((?:(([^:@\/#\?]+)(?:\:([^:@\/#\?]+))?)@)?(([^:\/#\?\]\[]+|\[[^\/\]@#?]+\])(?:\:([0-9]+))?))?)?)?((\/?(?:[^\/\?#]+\/+)*)([^\?#]*)))?(\?[^#]+)?)(#.*)?/;
-			var matches = urlParseRE.exec(tabs[0].url);
-			params.host = matches[11];
+			var url = new URL( tabs[0].url );
+			params.host = url.host;
 
 			chrome.runtime.sendMessage(null, {op: op, params: params}, {}, fulfill);
 		});
@@ -50,75 +49,85 @@ var updateProfile = function (id, set) {
 	});
 };
 
-document.addEventListener('DOMContentLoaded', function () {
-	callApi('getProfiles').then(function (data) {
-		var profiles = [];
-		for (var id in data.profiles) {
-			var profile = data.profiles[id];
-			profile.id = id;
-			profiles.push(profile);
-		}
-		profiles.sort(function (a, b) {
-			return a.id - b.id;
-		})
-
-		var mainDiv = document.createElement('div');
-
-		profiles.forEach(function (profile) {
-			var title = profile.title;
-			if (profile.id == data.currentProfileId)
-				title = '['+title+']';
-
-			var button = document.createElement('button');
-			button.innerHTML = title;
-
-			if (profile.id != data.currentProfileId) {
-				button.onclick = function () {
-					selectProfile(profile.id);
-				};
-			} else {
-				button.style.color = 'red';
-			}
-
-			mainDiv.appendChild(button);
-		});
-
-		var hr = document.createElement('p');
-		mainDiv.appendChild(hr);
-	
-		var button = document.createElement('button');
-		button.innerHTML = '新建..';
-		button.onclick = newProfile;
-		mainDiv.appendChild(button);
-
-		if (profiles.length > 1) {
-			var button = document.createElement('button');
-			button.innerHTML = '删除';
-			button.onclick = deleteCurrentProfile;
-			mainDiv.appendChild(button);
-
-			var button = document.createElement('button');
-			var input = document.createElement('input');
-			input.value = data.profiles[data.currentProfileId].title;
-
-			button.innerHTML = '重命名';
-			button.onclick = function () {
-				button.parentNode.replaceChild(input, button);
-				input.focus();
-				input.onkeypress = function (e) {
-					if (e.keyCode == 13) {
-						updateProfile(data.currentProfileId, {
-							title: input.value,
-						});
-						return false;
-					}
-					return true;
-				};
-			};
-			mainDiv.appendChild(button);
-		}
-
-		document.body.appendChild(mainDiv);
+const fromat = ( profiles )=>{
+	let profileArr = [];
+	for (let id in profiles) {
+		let profile = profiles[id];
+		profile.id = id;
+		profileArr.push(profile);
+	}
+	profileArr.sort(function (a, b) {
+		return a.id - b.id;
 	});
-});
+	return profileArr;
+};
 
+const getTrProfileId = (el)=>{
+	let tr = Util.parent( el, 'tr');
+	let profileId =  tr ? tr.dataset.id : '';
+	return profileId;
+};
+
+const render = function( data ){
+	let profiles = fromat(data.profiles);
+	let currentId = data.currentProfileId;
+
+	console.log( data );
+	let app = document.querySelector('#app');
+	app.innerHTML = buildHtml({
+		list: profiles,
+		activeId: currentId,
+	});
+
+	if(!app.dataset.binded){ // 防止重复绑定
+		app.addEventListener('click', function(e){
+			let el = e.target;
+			switch( el.dataset.node ){
+				case 'label':
+					let id = getTrProfileId(el);
+					if( id && id != currentId){
+						selectProfile(id);
+					}
+					break;
+				// 删除
+				case 'close' :
+					deleteCurrentProfile();
+					break;
+				case 'rename':
+					let list = document.querySelector('.list');
+					let td = list.querySelector('tr.active td');
+					let label = td.querySelector('label');
+					let input = document.createElement('input');
+					input.value = data.profiles[currentId].title;
+					td.replaceChild(input, label);
+					input.focus();
+					input.onkeypress = function (e) {
+						if (e.keyCode == 13) {
+							let val = input.value.trim();
+							if( val !== ''){
+								updateProfile(currentId, {
+									title: input.value,
+								});
+								return false;
+							}
+						}
+						return true;
+					};
+					break;
+				case 'create':
+					newProfile();
+					break;
+				default: break;
+			}
+		});
+		app.dataset.binded = true;
+	}
+};
+
+const initPage = ( )=>{
+	callApi('getProfiles').then(function (data) {
+		render( data );
+	});
+};
+
+document.addEventListener('DOMContentLoaded', initPage);

@@ -1,17 +1,40 @@
 <html>
 <head>
 	<meta charset="utf-8" />
+	<title>马甲列表</title>
+	<meta name="description" content="马甲列表">
 	<style>
-
-		.toolbox {
-			margin-top: 20px;
-		}
-
 		body {
 			min-height: 0;
 			padding: 0;
 			width: 200px;
 			text-align: center;
+		}
+		table.list{
+			border-collapse: collapse;
+			width: 100%;
+		}
+		.list tr{
+			line-height: 1em;
+		}
+		.list tr.active{
+			background-color: rgb(240, 255, 246);
+		}
+		.list tr:hover{
+			background-color: #eee;
+		}
+		.list label{
+			width: 100%;
+		}
+		tr .close{
+			font-size: 2em;
+			cursor: pointer;
+		}
+		tr td{
+			padding: 10px 2px;
+		}
+		.toolbar {
+			margin-top: 15px;
 		}
 
 		button {
@@ -20,8 +43,12 @@
 		}
 
 	</style>
-	<script type="text/javascript" charset="utf-8" src="popup.js"></script>
 </head>
 <body>
+	<div id="app"></div>
+
+	<script type="text/javascript" charset="utf-8" src="util.js"></script>
+	<script type="text/javascript" charset="utf-8" src="render.js"></script>
+	<script type="text/javascript" charset="utf-8" src="popup.js"></script>
 </body>
 </html>
