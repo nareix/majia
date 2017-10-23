@@ -78,56 +78,64 @@ const render = function( data ){
 		list: profiles,
 		activeId: currentId,
 	});
-
-	if(!app.dataset.binded){ // 防止重复绑定
-		app.addEventListener('click', function(e){
-			let el = e.target;
-			switch( el.dataset.node ){
-				case 'label':
-					let id = getTrProfileId(el);
-					if( id && id != currentId){
-						selectProfile(id);
-					}
-					break;
-				// 删除
-				case 'close' :
-					deleteCurrentProfile();
-					break;
-				case 'rename':
-					let list = document.querySelector('.list');
-					let td = list.querySelector('tr.active td');
-					let label = td.querySelector('label');
-					let input = document.createElement('input');
-					input.value = data.profiles[currentId].title;
-					td.replaceChild(input, label);
-					input.focus();
-					input.onkeypress = function (e) {
-						if (e.keyCode == 13) {
-							let val = input.value.trim();
-							if( val !== ''){
-								updateProfile(currentId, {
-									title: input.value,
-								});
-								return false;
-							}
-						}
-						return true;
-					};
-					break;
-				case 'create':
-					newProfile();
-					break;
-				default: break;
-			}
-		});
-		app.dataset.binded = true;
-	}
 };
 
-const initPage = ( )=>{
-	callApi('getProfiles').then(function (data) {
-		render( data );
+const bindEvent = ( ) =>{
+	app.addEventListener('click', function(e){
+		let profiles = PROFILE_DATA.profiles;
+		let currentId = PROFILE_DATA.currentProfileId;
+
+		let el = e.target;
+		switch( el.dataset.node ){
+			case 'label':
+				let id = getTrProfileId(el);
+				if( id && id != currentId){
+					selectProfile(id);
+				}
+				break;
+			// 删除
+			case 'close' :
+				deleteCurrentProfile();
+				break;
+			case 'rename':
+				let list = document.querySelector('.list');
+				let td = list.querySelector('tr.active td');
+				let label = td.querySelector('label');
+				let input = document.createElement('input');
+				input.value = profiles[currentId].title;
+				td.replaceChild(input, label);
+				input.focus();
+				input.onkeypress = function (e) {
+					if (e.keyCode == 13) {
+						let val = input.value.trim();
+						if( val !== ''){
+							updateProfile(currentId, {
+								title: input.value,
+							});
+							return false;
+						}
+					}
+					return true;
+				};
+				break;
+			case 'create':
+				newProfile();
+				break;
+			default: break;
+		}
 	});
 };
 
-document.addEventListener('DOMContentLoaded', initPage);
+let PROFILE_DATA = {};
+
+const initPage = ()=>{
+	return callApi('getProfiles').then(function (data) {
+		PROFILE_DATA = data;
+		render( data );
+		return data;
+	});
+};
+
+document.addEventListener('DOMContentLoaded', ()=>{
+	initPage().then( bindEvent );
+});
