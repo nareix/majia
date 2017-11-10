@@ -1,7 +1,7 @@
 {
-  "name" : "马甲",
+  "name" : "马褂",
   "version" : "2.0.0",
-  "description" : "快速切换同一网站的多个已登录账号，支持豆瓣、知乎、微博、Twitter、Facebook 等等",
+  "description" : "多账号切换工具",
   "permissions": [
 		"cookies",
 		"tabs",
