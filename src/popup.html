@@ -9,6 +9,19 @@
 			padding: 0;
 			width: 200px;
 			text-align: center;
+			position: relative;
+		}
+		body:after{
+			content: "";
+			background: url('./asset/majia-128.png') no-repeat;
+			background-size: cover;
+			opacity: 0.1;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+			position: absolute;
+			z-index: -1;
 		}
 		table.list{
 			border-collapse: collapse;
@@ -18,10 +31,10 @@
 			line-height: 1em;
 		}
 		.list tr.active{
-			background-color: rgb(240, 255, 246);
+			background-color: rgba(240, 255, 246, 0.5);
 		}
 		.list tr:hover{
-			background-color: #eee;
+			background-color: rgba(238, 238, 238, 0.5);
 		}
 		.list label{
 			width: 100%;
