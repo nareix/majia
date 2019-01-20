@@ -1,4 +1,3 @@
-
 var denodify = function (fn) {
 	return function () {
 		var args = Array.prototype.slice.call(arguments);
@@ -10,7 +9,10 @@ var denodify = function (fn) {
 
 var sendMessageToCurrentTab = function (message) {
 	return new Promise(function (fulfill, reject) {
-		chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+		chrome.tabs.query({
+			active: true,
+			currentWindow: true
+		}, function (tabs) {
 			chrome.tabs.sendMessage(tabs[0].id, message, {}, fulfill);
 		});
 	});
@@ -19,33 +21,40 @@ var sendMessageToCurrentTab = function (message) {
 var resetLocalStorageByDomain = function (domain, content) {
 	return sendMessageToCurrentTab({
 		op: 'resetLocalStorageByDomain',
-		params: {domain: domain, content: content},
+		params: {
+			domain: domain,
+			content: content
+		},
 	});
 };
 
 var getLocalStorageByDomain = function (domain) {
 	return sendMessageToCurrentTab({
 		op: 'getLocalStorageByDomain',
-		params: {domain: domain},
+		params: {
+			domain: domain
+		},
 	});
 };
 
 var hostToDomain = function (host) {
 	var a = host.split('.');
 	if (a.length > 2)
-		a = a.slice(a.length-2);
+		a = a.slice(a.length - 2);
 	return a.join('.');
 };
 
 var cookieUrl = function (c) {
-	return (c.secure?'https':'http')+'://'+c.domain.replace(/^\./, '');
+	return (c.secure ? 'https' : 'http') + '://' + c.domain.replace(/^\./, '');
 };
 
 // cookies={cookies,localStorage}
 
 var getAllCookiesByDomain = function (domain) {
 	var res = {}
-	return denodify(chrome.cookies.getAll)({domain: domain}).then(function (cookies) {
+	return denodify(chrome.cookies.getAll)({
+		domain: domain
+	}).then(function (cookies) {
 		res.cookies = cookies;
 		return getLocalStorageByDomain(domain);
 	}).then(function (content) {
@@ -54,7 +63,7 @@ var getAllCookiesByDomain = function (domain) {
 	});
 };
 
-var removeAllCookiesByDomain  = function (domain) {
+var removeAllCookiesByDomain = function (domain) {
 	return getAllCookiesByDomain(domain).then(function (cookies) {
 		return Promise.all([
 			removeAllChromeCookies(cookies.cookies),
@@ -86,10 +95,14 @@ var setAllChromeCookies = function (cookies) {
 	return Promise.all(cookies.map(function (c) {
 		var set = {
 			url: cookieUrl(c),
-			name: c.name, value: c.value,
-			domain: c.domain, path: c.path,
-			secure: c.secure, httpOnly: c.httpOnly,
-			expirationDate: c.expirationDate, storeId: c.storeId,
+			name: c.name,
+			value: c.value,
+			domain: c.domain,
+			path: c.path,
+			secure: c.secure,
+			httpOnly: c.httpOnly,
+			expirationDate: c.expirationDate,
+			storeId: c.storeId,
 		};
 		return denodify(chrome.cookies.set)(set);
 	}));
@@ -110,7 +123,14 @@ var storageSet = function (k, v) {
 };
 
 var defaultDomainData = function () {
-	return {profiles: {1: {title: '默认'}}, currentProfileId: 1};
+	return {
+		profiles: {
+			1: {
+				title: '默认'
+			}
+		},
+		currentProfileId: 1
+	};
 };
 
 var api = {};
@@ -140,7 +160,9 @@ api.newProfile = function (params) {
 		return getAllCookiesByDomain(domain).then(function (cookies) {
 			oldProfile.cookies = cookies;
 
-			var newProfile = {title: '马甲'+Object.keys(data.profiles).length};
+			var newProfile = {
+				title: '马甲' + Object.keys(data.profiles).length
+			};
 			var newProfileId = Date.now();
 			data.profiles[newProfileId] = newProfile;
 			data.currentProfileId = newProfileId;
@@ -220,9 +242,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, cb) {
 	};
 
 	var func = api[msg.op];
-	if (func)
+	if (func) {
 		func(msg.params).then(fulfill);
+	}
 
 	return true;
 });
-

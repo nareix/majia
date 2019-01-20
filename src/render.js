@@ -21,7 +21,7 @@ const DATA_NODE=(()=>{
 
 const buildHtml = function({
   list,
-  activeId =1,
+  activeId = 1,
   }){
   return tmpCont( tmpList( list, activeId ), tmpToolbar(list.length) );
 };
