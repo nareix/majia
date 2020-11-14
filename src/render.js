@@ -21,9 +21,9 @@ const DATA_NODE=(()=>{
 
 const buildHtml = function({
   list,
-  activeId =1,
+  activeId = 1,
   }){
-  return tmpCont( tmpList( list, activeId ), tmpToolbar() );
+  return tmpCont( tmpList( list, activeId ), tmpToolbar(list.length) );
 };
 
 var tmpCont = function( list, toolbar ){
@@ -61,11 +61,11 @@ var tmpList = function( list, activeId){
 `
 };
 
-var tmpToolbar = function(){
+var tmpToolbar = function( listLen ){
   return `
 <div class="toolbar">
   <button ${DATA_NODE.create}>+</button>
-  <button ${DATA_NODE.rename}>Rename</button>
+  ${listLen > 1 ? `<button ${DATA_NODE.rename}>Rename</button>` : ''}
 </div>
   `
 };
