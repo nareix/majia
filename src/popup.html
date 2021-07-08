@@ -1,0 +1,67 @@
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>马甲列表</title>
+	<meta name="description" content="马甲列表">
+	<style>
+		body {
+			min-height: 0;
+			padding: 0;
+			width: 200px;
+			text-align: center;
+			position: relative;
+		}
+		body:after{
+			content: "";
+			background: url('./asset/majia-128.png') no-repeat;
+			background-size: cover;
+			opacity: 0.1;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+			position: absolute;
+			z-index: -1;
+		}
+		table.list{
+			border-collapse: collapse;
+			width: 100%;
+		}
+		.list tr{
+			line-height: 1em;
+		}
+		.list tr.active{
+			background-color: rgba(240, 255, 246, 0.5);
+		}
+		.list tr:hover{
+			background-color: rgba(238, 238, 238, 0.5);
+		}
+		.list label{
+			width: 100%;
+		}
+		tr .close{
+			font-size: 2em;
+			cursor: pointer;
+		}
+		tr td{
+			padding: 10px 2px;
+		}
+		.toolbar {
+			margin-top: 15px;
+		}
+
+		button {
+			display: inline;
+			margin-right: 5px;
+		}
+
+	</style>
+</head>
+<body>
+	<div id="app"></div>
+
+	<script type="text/javascript" charset="utf-8" src="util.js"></script>
+	<script type="text/javascript" charset="utf-8" src="render.js"></script>
+	<script type="text/javascript" charset="utf-8" src="popup.js"></script>
+</body>
+</html>
